@@ -1,7 +1,3 @@
-
-
-
-
 // Assume 'firebase' has already been initialized elsewhere in your script
 var db = firebase.firestore();
 let playButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fplay-button.png?alt=media&token=5d75ba33-098b-4445-bc95-e57caf1d920d"
@@ -189,18 +185,18 @@ var patientAudioBlock = document.createElement('div');
 patientAudioBlock.className = 'patient-audio-block';
 var audioFileName = extractFileNameFromURL(audioURL);
 
-let audio = new Audio(audioURL);
-
 // Elapsed time display
 let elapsedTimeDisplay = document.createElement('span');
 elapsedTimeDisplay.className = 'patient-text';
-patientAudioBlock.appendChild(elapsedTimeDisplay);
+
+let audio = new Audio(audioURL);
 
 // Audio playback button setup
 var playButton = document.createElement('img');
 playButton.src = playButtonSrc;
 playButton.className = 'play-button';
 playButton.alt = "Play Audio";
+
 
 playButton.addEventListener('click', function(event) {
     event.stopPropagation(); // Prevent triggering click event on userBlock
@@ -224,6 +220,7 @@ audio.addEventListener('ended', function() {
 });
 
 patientAudioBlock.appendChild(playButton);
+patientAudioBlock.appendChild(elapsedTimeDisplay);
 elapsedTimeDisplay.textContent = audioFileName; // Initially show file name
 
 function updateElapsedTime(audio, displayElement) {
