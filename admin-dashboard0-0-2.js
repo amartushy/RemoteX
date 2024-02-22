@@ -184,58 +184,60 @@ function buildExamBlock(userID, userName, userPhoto, examDate, examType, audioUR
         createDOMElement('img', 'exam-image', lungSrc, patientExamBlock)
     }
 
-    //Audio Block : Button & Text
-    var patientAudioBlock = document.createElement('div');
-    patientAudioBlock.className = 'patient-audio-block';
-    var audioFileName = extractFileNameFromURL(audioURL);
+ // Audio Block: Button & Text
+var patientAudioBlock = document.createElement('div');
+patientAudioBlock.className = 'patient-audio-block';
+var audioFileName = extractFileNameFromURL(audioURL);
 
-    let isPlaying = false;
-    let audio = new Audio(audioURL);
+let audio = new Audio(audioURL);
 
-    // Elapsed time display
-    let elapsedTimeDisplay = document.createElement('span');
-    elapsedTimeDisplay.className = 'patient-text';
-    patientAudioBlock.appendChild(elapsedTimeDisplay);
+// Elapsed time display
+let elapsedTimeDisplay = document.createElement('span');
+elapsedTimeDisplay.className = 'patient-text';
+patientAudioBlock.appendChild(elapsedTimeDisplay);
 
-    // Audio playback button setup
-    var playButton = document.createElement('img');
-    playButton.src = playButtonSrc; 
-    playButton.className = 'play-button';
-    playButton.alt = "Play Audio";
-    playButton.addEventListener('click', function(event) {
-        if (!isPlaying) {
-            audio.play().then(() => {
-                isPlaying = true;
-                playButton.src = stopButtonSrc
-                updateElapsedTime(audio, elapsedTimeDisplay);
-            }).catch(error => console.error("Playback failed", error));
-        } else {
-            audio.pause();
-            isPlaying = false;
-            playButton.src = playButtonSrc; // Change back to play button
-            audio.currentTime = 0; // Optionally reset audio to start
-            elapsedTimeDisplay.textContent = ''; // Clear elapsed time
-        }
-    });
-    patientAudioBlock.appendChild(playButton);
+// Audio playback button setup
+var playButton = document.createElement('img');
+playButton.src = playButtonSrc;
+playButton.className = 'play-button';
+playButton.alt = "Play Audio";
 
-
-
-    // Function to update elapsed time display
-    function updateElapsedTime(audio, displayElement) {
-        let interval = setInterval(() => {
-            if (!isPlaying) {
-                clearInterval(interval);
-            } else {
-                let minutes = Math.floor(audio.currentTime / 60);
-                let seconds = Math.floor(audio.currentTime - minutes * 60);
-                displayElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            }
-        }, 1000);
+playButton.addEventListener('click', function(event) {
+    event.stopPropagation(); // Prevent triggering click event on userBlock
+    if (audio.paused) {
+        audio.play().then(() => {
+            playButton.src = stopButtonSrc; // Change to stop button
+            updateElapsedTime(audio, elapsedTimeDisplay); // Update elapsed time
+        }).catch(error => console.error("Playback failed", error));
+    } else {
+        audio.pause();
+        playButton.src = playButtonSrc; // Change back to play button
+        elapsedTimeDisplay.textContent = audioFileName; // Show file name again
+        audio.currentTime = 0; // Optionally reset audio to start
     }
+});
 
-    createDOMElement('div', 'patient-text', audioFileName, patientAudioBlock)
+audio.addEventListener('ended', function() {
+    playButton.src = playButtonSrc; // Revert to play button when audio ends
+    elapsedTimeDisplay.textContent = audioFileName; // Show file name
+    audio.currentTime = 0; // Reset audio to start
+});
 
+patientAudioBlock.appendChild(playButton);
+elapsedTimeDisplay.textContent = audioFileName; // Initially show file name
+
+function updateElapsedTime(audio, displayElement) {
+    let interval = setInterval(() => {
+        if (audio.paused) {
+            clearInterval(interval); // Stop updating when audio is paused/stopped
+            displayElement.textContent = audioFileName; // Revert to showing the file name
+        } else {
+            let minutes = Math.floor(audio.currentTime / 60);
+            let seconds = Math.floor(audio.currentTime % 60);
+            displayElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+    }, 1000);
+}
     //Notes
     var patientNotesBlock = document.createElement('div');
     patientNotesBlock.className = 'patient-notes-block';
