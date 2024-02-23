@@ -1,4 +1,3 @@
-// Assume 'firebase' has already been initialized elsewhere in your script
 var db = firebase.firestore();
 let playButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fplay-button.png?alt=media&token=5d75ba33-098b-4445-bc95-e57caf1d920d"
 let stopButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fstop.png?alt=media&token=3c34261c-5ede-44a6-a17f-522f9adc0a41"
@@ -28,14 +27,7 @@ function extractFileNameFromURL(url) {
     // Extract the part of the URL after the last '/'
     var segments = decodedUrl.split('/');
     var fileName = segments.pop(); // Get the last segment which is the file name
-    
-    // Alternatively, if you want to keep using the encoded URL for splitting
-    // you can split by '%2F' and then decode only the file name part
-    // var segmentsEncoded = url.split('%2F');
-    // var fileNameEncoded = segmentsEncoded.pop();
-    // var fileName = decodeURIComponent(fileNameEncoded.split('?')[0]);
 
-    // Assuming the URL might have parameters, remove them
     fileName = fileName.split('?')[0];
     
     return fileName;
@@ -114,10 +106,6 @@ async function fetchUserDetails(userID, userBlock) {
     }
 }
 
-// Call the function to fetch exams and build the UI
-fetchAllExamsWithUserDetails();
-
-
 
 
 function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email, age, deviceModel, height, weight, BMI) {
@@ -127,7 +115,6 @@ function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email
     }
     patientDetailsContainer.style.display = "flex"
 
-    //Photo and Name
     if (userPhoto == "") {
         createDOMElement('img', 'patient-details-photo', defaultProfile, patientDetailsContainer)
     } else {
@@ -152,7 +139,7 @@ function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email
 
 function buildExamBlock(userID, userName, userPhoto, examDate, examType, audioURL, notes) {
     var userBlock = document.createElement('div');
-    userBlock.className = 'user-block';
+    userBlock.className = 'exam-block';
     userBlock.addEventListener('click', () => fetchUserDetails(userID, userBlock));
 
     //Photo and Name
@@ -240,10 +227,10 @@ function updateElapsedTime(audio, displayElement) {
     patientNotesBlock.className = 'patient-notes-block';
     createDOMElement('div', 'patient-text', notes, patientNotesBlock)
 
-    //Selection Button
-    var patientSelectBlock = document.createElement('div');
-    patientSelectBlock.className = 'patient-select-block';
-    createDOMElement('div', 'patient-selected', "", patientSelectBlock)
+    // //Selection Button
+    // var patientSelectBlock = document.createElement('div');
+    // patientSelectBlock.className = 'patient-select-block';
+    // createDOMElement('div', 'patient-selected', "", patientSelectBlock)
 
 
     // Append all child blocks to the userBlock
@@ -252,7 +239,7 @@ function updateElapsedTime(audio, displayElement) {
     userBlock.appendChild(patientExamBlock);
     userBlock.appendChild(patientAudioBlock);
     userBlock.appendChild(patientNotesBlock);
-    userBlock.appendChild(patientSelectBlock);
+    // userBlock.appendChild(patientSelectBlock);
 
     // Finally, append the userBlock to the exams-container
     document.getElementById('exams-container').appendChild(userBlock);
