@@ -256,3 +256,67 @@ function createDOMElement(type, className, value, parent) {
     }
     parent.appendChild(DOMElement)
 }
+
+
+
+
+
+document.getElementById('download-exams-csv').addEventListener('click', async () => {
+    const db = firebase.firestore();
+    try {
+        const examsSnapshot = await db.collection('exams').get();
+        let csvContent = "data:text/csv;charset=utf-8,";
+        // Extending the header row with user information
+        csvContent += `"Record DateTime","Exam ID","User ID","Exam Type","Audio Link","Notes","Device Model","Height (Feet)","Height (Inches)","Weight","BMI","Gender","Age"\r\n`;
+
+        // Fetch user data for each exam and format rows
+        const rows = await Promise.all(examsSnapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            // Fetch user document
+            const userDoc = await db.collection('users').doc(data.userID).get();
+            const userData = userDoc.data();
+
+            const date = data.date.toDate();
+            const dateTimeString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+            const notes = data.notes ? `"${data.notes.replace(/"/g, '""')}"` : "";
+
+            // Include user data in the row
+
+            // Updated approach for handling the notes field
+            const sanitizedNotes = data.notes ? data.notes.replace(/"/g, '""').replace(/\r?\n|\r/g, " ") : "";
+            const rowData = [
+                dateTimeString,
+                doc.id,
+                data.userID,
+                data.type,
+                data.recording,
+                `"${sanitizedNotes}"`,
+                userData.deviceModel || "",
+                userData.heightFeet || "",
+                userData.heightInches || "",
+                userData.weight || "",
+                userData.BMI || "",
+                userData.gender || "",
+                userData.age || ""
+            ].join('","');
+
+            return `"${rowData}"\r\n`;
+        }));
+
+        // Append all rows to csvContent
+        csvContent += rows.join('');
+
+        // Creating a link to trigger the download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "exams.csv");
+        document.body.appendChild(link); // Required for Firefox
+
+        link.click(); // Triggering the download
+
+        document.body.removeChild(link); // Cleaning up the link
+    } catch (error) {
+        console.error("Error fetching exams data: ", error);
+    }
+});
