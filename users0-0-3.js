@@ -1,3 +1,4 @@
+
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         // User is signed in, now check if they have isAdmin permission
@@ -6,6 +7,21 @@ firebase.auth().onAuthStateChanged(user => {
             if (doc.exists && doc.data().isAdmin) {
                 // User is an admin, allow them to stay on the page
                 console.log("User is admin.");
+
+                // Call the function to fetch exams and build the UI
+                fetchAllExamsWithUserDetails();
+
+                // Call the function to fetch users and build the UI
+                fetchAllUsersAndBuildBlocks();
+
+                let adminData = doc.data()
+                let adminProfileDiv = document.getElementById('admin-profile-div')
+                while (adminProfileDiv.firstChild) {
+                    adminProfileDiv.removeChild(adminProfileDiv.firstChild)
+                }
+                createDOMElement('img', 'patient-photo', adminData.profilePhoto, adminProfileDiv);
+                createDOMElement('div', 'patient-text', adminData.fullName, adminProfileDiv);
+
             } else {
                 // User is not an admin, redirect them to the login page
                 window.location.href = "https://remotex-admin.webflow.io/login";
@@ -20,6 +36,19 @@ firebase.auth().onAuthStateChanged(user => {
     }
 });
 
+let logoutButton = document.getElementById('logout-button');
+
+logoutButton.addEventListener('click', function() {
+    firebase.auth().signOut().then(() => {
+        console.log('User logged out successfully');
+        // Redirect to login page or show a message
+        window.location.href = "https://remotex-admin.webflow.io/login";
+    }).catch((error) => {
+        // Handle errors here
+        console.error('Error logging out:', error);
+        alert('Failed to log out');
+    });
+});
 
 let examsTab = document.getElementById("exams-tab");
 let usersTab = document.getElementById("users-tab");
@@ -90,6 +119,55 @@ async function fetchAllUsersAndBuildBlocks() {
     } catch (error) {
         console.error("Error fetching users: ", error);
     }
+}
+
+function buildUserBlock(userID, userName, userPhoto, dateCreated, status) {
+    let userBlock = document.createElement('div');
+    userBlock.className = 'user-block';
+    userBlock.addEventListener('click', () => fetchUserDetails(userID, userBlock));
+
+    //Photo and Name
+    var userNameBlock = document.createElement('div');
+    userNameBlock.className = 'user-name-block';
+    createDOMElement('img', 'patient-photo', userPhoto, userNameBlock);
+    createDOMElement('div', 'patient-text', userName, userNameBlock);
+
+    //Date Created
+    var userDateBlock = document.createElement('div');
+    userDateBlock.className = 'user-date-block';
+    createDOMElement('div', 'patient-text', formatDate(dateCreated), userDateBlock);
+
+    let userStatusBlock = document.createElement('div');
+    userStatusBlock.className = 'user-status-block';
+    let statusButton = document.createElement('button');
+    updateStatusButton(statusButton, status);
+    userStatusBlock.appendChild(statusButton);
+
+    // Event listener for status button to toggle status
+    statusButton.addEventListener('click', async () => {
+        const newStatus = !status; // Toggle the status
+        try {
+            await db.collection('users').doc(userID).update({isAuthorized: newStatus});
+            status = newStatus; // Update the local status variable to reflect the change
+            updateStatusButton(statusButton, status); // Update button appearance based on new status
+            console.log(`User ${userID} status updated to ${status}`);
+        } catch (error) {
+            console.error("Error updating user status: ", error);
+        }
+    });
+
+    // Append child elements to the user block
+    userBlock.appendChild(userNameBlock);
+    userBlock.appendChild(userDateBlock);
+    userBlock.appendChild(userStatusBlock);
+
+    // Append the user block to the container
+    document.getElementById('users-container').appendChild(userBlock);
+}
+
+function updateStatusButton(button, status) {
+    button.className = status ? "authorized-button" : "unauthorized-button";
+    button.textContent = status ? "Approved" : "Pending";
 }
 
 function buildUserBlock(userID, userName, userPhoto, dateCreated, status) {
