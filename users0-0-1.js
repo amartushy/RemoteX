@@ -1,6 +1,3 @@
-
-
-
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         // User is signed in, now check if they have isAdmin permission
@@ -9,21 +6,6 @@ firebase.auth().onAuthStateChanged(user => {
             if (doc.exists && doc.data().isAdmin) {
                 // User is an admin, allow them to stay on the page
                 console.log("User is admin.");
-
-                // Call the function to fetch exams and build the UI
-                fetchAllExamsWithUserDetails();
-
-                // Call the function to fetch users and build the UI
-                fetchAllUsersAndBuildBlocks();
-
-                let adminData = doc.data()
-                let adminProfileDiv = document.getElementById('admin-profile-div')
-                while (adminProfileDiv.firstChild) {
-                    adminProfileDiv.removeChild(adminProfileDiv.firstChild)
-                }
-                createDOMElement('img', 'patient-photo', adminData.profilePhoto, adminProfileDiv);
-                createDOMElement('div', 'patient-text', adminData.fullName, adminProfileDiv);
-
             } else {
                 // User is not an admin, redirect them to the login page
                 window.location.href = "https://remotex-admin.webflow.io/login";
@@ -38,19 +20,6 @@ firebase.auth().onAuthStateChanged(user => {
     }
 });
 
-let logoutButton = document.getElementById('logout-button');
-
-logoutButton.addEventListener('click', function() {
-    firebase.auth().signOut().then(() => {
-        console.log('User logged out successfully');
-        // Redirect to login page or show a message
-        window.location.href = "https://remotex-admin.webflow.io/login";
-    }).catch((error) => {
-        // Handle errors here
-        console.error('Error logging out:', error);
-        alert('Failed to log out');
-    });
-});
 
 let examsTab = document.getElementById("exams-tab");
 let usersTab = document.getElementById("users-tab");
@@ -173,25 +142,51 @@ function updateStatusButton(button, status) {
 }
 
 
+// Call the function to fetch users and build the UI
+fetchAllUsersAndBuildBlocks();
+
+
 document.getElementById('download-exams-csv').addEventListener('click', async () => {
     const db = firebase.firestore();
     try {
         const examsSnapshot = await db.collection('exams').get();
         let csvContent = "data:text/csv;charset=utf-8,";
-        // Adding header row with new order and headers
-        csvContent += `"Record DateTime","Exam ID","User ID","Exam Type","Audio Link","Notes"\r\n`;
+        // Extending the header row with user information
+        csvContent += `"Record DateTime","Exam ID","User ID","Exam Type","Audio Link","Notes","Device Model","Height (Feet)","Height (Inches)","Weight","BMI","Gender","Age"\r\n`;
 
-        examsSnapshot.forEach((doc) => {
+        // Fetch user data for each exam and format rows
+        const rows = await Promise.all(examsSnapshot.docs.map(async (doc) => {
             const data = doc.data();
-            // Formatting the date to include time
+            // Fetch user document
+            const userDoc = await db.collection('users').doc(data.userID).get();
+            const userData = userDoc.data();
+
             const date = data.date.toDate();
             const dateTimeString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-            // Check if notes exists and escaping commas and quotes, otherwise use an empty string
             const notes = data.notes ? `"${data.notes.replace(/"/g, '""')}"` : "";
-            // Rearranging data according to the new order
-            const rowData = `"${dateTimeString}","${doc.id}","${data.userID}","${data.type}","${data.recording}",${notes}`;
-            csvContent += rowData + "\r\n";
-        });
+
+            // Include user data in the row
+            const rowData = [
+                dateTimeString,
+                doc.id,
+                data.userID,
+                data.type,
+                data.recording,
+                notes,
+                userData.deviceModel,
+                userData.heightFeet,
+                userData.heightInches,
+                userData.weight,
+                userData.BMI,
+                userData.gender,
+                userData.age
+            ].join('","');
+
+            return `"${rowData}"\r\n`;
+        }));
+
+        // Append all rows to csvContent
+        csvContent += rows.join('');
 
         // Creating a link to trigger the download
         const encodedUri = encodeURI(csvContent);
