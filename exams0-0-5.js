@@ -260,6 +260,8 @@ async function deleteExam(examId) {
     try {
         await db.collection('exams').doc(examId).delete();
         console.log('Exam deleted successfully');
+        fetchAllExamsWithUserDetails(); // Refetch and rerender exams after deletion
+
         // Optionally, refresh the exams list or remove the exam block from UI
     } catch (error) {
         console.error('Error deleting exam:', error);
