@@ -36,6 +36,8 @@ function extractFileNameFromURL(url) {
 }
 
 async function fetchAllExamsWithUserDetails() {
+    clearExamsUI(); // Clear existing UI elements before fetching
+
     try {
         const examsSnapshot = await db.collection('exams').orderBy('date', 'desc').get();
         const examsDataPromises = examsSnapshot.docs.map(async (examDoc) => {
@@ -73,6 +75,11 @@ async function fetchAllExamsWithUserDetails() {
     } catch (error) {
         console.error("Error fetching exams with user details: ", error);
     }
+}
+
+function clearExamsUI() {
+    const examsContainer = document.getElementById('exams-container'); // Assuming this is your container for exams
+    examsContainer.innerHTML = ''; // Clear the container
 }
 
 async function fetchUserDetails(userID, userBlock) {
