@@ -1,3 +1,5 @@
+
+
 var db = firebase.firestore();
 let playButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fplay-button.png?alt=media&token=5d75ba33-098b-4445-bc95-e57caf1d920d"
 let stopButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fstop.png?alt=media&token=3c34261c-5ede-44a6-a17f-522f9adc0a41"
@@ -43,6 +45,7 @@ async function fetchAllExamsWithUserDetails() {
             if (userSnapshot.exists) {
                 const userData = userSnapshot.data();
                 return {
+                    examID: examDoc.id, // Include the exam document's ID
                     userID : examData.userID,
                     userProfilePhoto: userData.profilePhoto,
                     userFullName: userData.fullName || "Unknown Name",
@@ -57,6 +60,7 @@ async function fetchAllExamsWithUserDetails() {
         const examsData = await Promise.all(examsDataPromises);
         examsData.filter(exam => exam !== undefined).forEach((exam) => {
             buildExamBlock(
+                exam.examID,
                 exam.userID,
                 exam.userFullName,
                 exam.userProfilePhoto,
@@ -137,7 +141,7 @@ function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email
 
 
 
-function buildExamBlock(userID, userName, userPhoto, examDate, examType, audioURL, notes) {
+function buildExamBlock(examID, userID, userName, userPhoto, examDate, examType, audioURL, notes) {
     var userBlock = document.createElement('div');
     userBlock.className = 'exam-block';
     userBlock.addEventListener('click', () => fetchUserDetails(userID, userBlock));
@@ -237,7 +241,7 @@ function buildExamBlock(userID, userName, userPhoto, examDate, examType, audioUR
     patientActionsBlock.appendChild(deleteButton)
     deleteButton.addEventListener('click', function(event) {
         event.stopPropagation(); // Prevent triggering click event of parent elements
-        deleteExam(examId);
+        deleteExam(examID);
     });
 
     // Append all child blocks to the userBlock
