@@ -167,71 +167,78 @@ function buildExamBlock(userID, userName, userPhoto, examDate, examType, audioUR
         createDOMElement('img', 'exam-image', lungSrc, patientExamBlock)
     }
 
- // Audio Block: Button & Text
-var patientAudioBlock = document.createElement('div');
-patientAudioBlock.className = 'patient-audio-block';
-var audioFileName = extractFileNameFromURL(audioURL);
+    // Audio Block: Button & Text
+    var patientAudioBlock = document.createElement('div');
+    patientAudioBlock.className = 'patient-audio-block';
+    var audioFileName = extractFileNameFromURL(audioURL);
 
-// Elapsed time display
-let elapsedTimeDisplay = document.createElement('span');
-elapsedTimeDisplay.className = 'patient-text';
+    // Elapsed time display
+    let elapsedTimeDisplay = document.createElement('span');
+    elapsedTimeDisplay.className = 'patient-text';
 
-let audio = new Audio(audioURL);
+    let audio = new Audio(audioURL);
 
-// Audio playback button setup
-var playButton = document.createElement('img');
-playButton.src = playButtonSrc;
-playButton.className = 'play-button';
-playButton.alt = "Play Audio";
+    // Audio playback button setup
+    var playButton = document.createElement('img');
+    playButton.src = playButtonSrc;
+    playButton.className = 'play-button';
+    playButton.alt = "Play Audio";
 
 
-playButton.addEventListener('click', function(event) {
-    event.stopPropagation(); // Prevent triggering click event on userBlock
-    if (audio.paused) {
-        audio.play().then(() => {
-            playButton.src = stopButtonSrc; // Change to stop button
-            updateElapsedTime(audio, elapsedTimeDisplay); // Update elapsed time
-        }).catch(error => console.error("Playback failed", error));
-    } else {
-        audio.pause();
-        playButton.src = playButtonSrc; // Change back to play button
-        elapsedTimeDisplay.textContent = audioFileName; // Show file name again
-        audio.currentTime = 0; // Optionally reset audio to start
-    }
-});
-
-audio.addEventListener('ended', function() {
-    playButton.src = playButtonSrc; // Revert to play button when audio ends
-    elapsedTimeDisplay.textContent = audioFileName; // Show file name
-    audio.currentTime = 0; // Reset audio to start
-});
-
-patientAudioBlock.appendChild(playButton);
-patientAudioBlock.appendChild(elapsedTimeDisplay);
-elapsedTimeDisplay.textContent = audioFileName; // Initially show file name
-
-function updateElapsedTime(audio, displayElement) {
-    let interval = setInterval(() => {
+    playButton.addEventListener('click', function(event) {
+        event.stopPropagation(); // Prevent triggering click event on userBlock
         if (audio.paused) {
-            clearInterval(interval); // Stop updating when audio is paused/stopped
-            displayElement.textContent = audioFileName; // Revert to showing the file name
+            audio.play().then(() => {
+                playButton.src = stopButtonSrc; // Change to stop button
+                updateElapsedTime(audio, elapsedTimeDisplay); // Update elapsed time
+            }).catch(error => console.error("Playback failed", error));
         } else {
-            let minutes = Math.floor(audio.currentTime / 60);
-            let seconds = Math.floor(audio.currentTime % 60);
-            displayElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            audio.pause();
+            playButton.src = playButtonSrc; // Change back to play button
+            elapsedTimeDisplay.textContent = audioFileName; // Show file name again
+            audio.currentTime = 0; // Optionally reset audio to start
         }
-    }, 1000);
-}
+    });
+
+    audio.addEventListener('ended', function() {
+        playButton.src = playButtonSrc; // Revert to play button when audio ends
+        elapsedTimeDisplay.textContent = audioFileName; // Show file name
+        audio.currentTime = 0; // Reset audio to start
+    });
+
+    patientAudioBlock.appendChild(playButton);
+    patientAudioBlock.appendChild(elapsedTimeDisplay);
+    elapsedTimeDisplay.textContent = audioFileName; // Initially show file name
+
+    function updateElapsedTime(audio, displayElement) {
+        let interval = setInterval(() => {
+            if (audio.paused) {
+                clearInterval(interval); // Stop updating when audio is paused/stopped
+                displayElement.textContent = audioFileName; // Revert to showing the file name
+            } else {
+                let minutes = Math.floor(audio.currentTime / 60);
+                let seconds = Math.floor(audio.currentTime % 60);
+                displayElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            }
+        }, 1000);
+    }
     //Notes
     var patientNotesBlock = document.createElement('div');
     patientNotesBlock.className = 'patient-notes-block';
     createDOMElement('div', 'patient-text', notes, patientNotesBlock)
 
-    // //Selection Button
-    // var patientSelectBlock = document.createElement('div');
-    // patientSelectBlock.className = 'patient-select-block';
-    // createDOMElement('div', 'patient-selected', "", patientSelectBlock)
+    //Delete Button
+    var patientActionsBlock = document.createElement('div');
+    patientActionsBlock.className = 'patient-actions-block';
 
+    let deleteButton = document.createElement('div');
+    deleteButton.className = "patient-delete"
+    deleteButton.innerHTML = ""
+    patientActionsBlock.appendChild(deleteButton)
+    deleteButton.addEventListener('click', function(event) {
+        event.stopPropagation(); // Prevent triggering click event of parent elements
+        deleteExam(examId);
+    });
 
     // Append all child blocks to the userBlock
     userBlock.appendChild(patientNameBlock);
@@ -239,10 +246,20 @@ function updateElapsedTime(audio, displayElement) {
     userBlock.appendChild(patientExamBlock);
     userBlock.appendChild(patientAudioBlock);
     userBlock.appendChild(patientNotesBlock);
-    // userBlock.appendChild(patientSelectBlock);
+    userBlock.appendChild(patientActionsBlock);
 
     // Finally, append the userBlock to the exams-container
     document.getElementById('exams-container').appendChild(userBlock);
+}
+
+async function deleteExam(examId) {
+    try {
+        await db.collection('exams').doc(examId).delete();
+        console.log('Exam deleted successfully');
+        // Optionally, refresh the exams list or remove the exam block from UI
+    } catch (error) {
+        console.error('Error deleting exam:', error);
+    }
 }
 
 
