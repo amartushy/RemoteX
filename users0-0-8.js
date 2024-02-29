@@ -1,3 +1,4 @@
+
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         // User is signed in, now check if they have isAdmin permission
@@ -131,7 +132,7 @@ function updateStatusButton(button, status) {
 function buildUserBlock(userID, userName, userPhoto, dateCreated, status, members) {
     let userBlock = document.createElement('div');
     userBlock.className = 'user-block';
-    userBlock.addEventListener('click', () => fetchUserDetails(userID, userBlock));
+    userBlock.addEventListener('click', () => fetchUserDetails(userID, null, userBlock));
 
     //Photo and Name
     var userNameBlock = document.createElement('div');
@@ -174,7 +175,7 @@ function buildUserBlock(userID, userName, userPhoto, dateCreated, status, member
         const memberElement = document.createElement('div');
 
         if (member.profilePhoto == "") {
-            createDOMElement('div',`patient-photo-${member.colorScheme}`,  getFirstInitial(userName), memberElement)
+            createDOMElement('div',`patient-photo-${member.colorScheme}`,  getFirstInitial(member.fullName), memberElement)
         } else {
             createDOMElement('img', 'patient-photo', member.profilePhoto, memberElement)
         }
@@ -202,3 +203,4 @@ function updateStatusButton(button, status) {
     button.className = status ? "authorized-button" : "unauthorized-button";
     button.textContent = status ? "Approved" : "Pending";
 }
+
