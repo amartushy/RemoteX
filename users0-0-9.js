@@ -1,4 +1,3 @@
-
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         // User is signed in, now check if they have isAdmin permission
@@ -137,7 +136,11 @@ function buildUserBlock(userID, userName, userPhoto, dateCreated, status, member
     //Photo and Name
     var userNameBlock = document.createElement('div');
     userNameBlock.className = 'user-name-block';
-    createDOMElement('img', 'patient-photo', userPhoto, userNameBlock);
+    if (userPhoto == "") {
+        createDOMElement('div', `patient-photo-${colorScheme}`, getFirstInitial(userName), userNameBlock)
+    } else {
+        createDOMElement('img', 'patient-photo', userPhoto, userNameBlock)
+    }
     createDOMElement('div', 'patient-text', userName, userNameBlock);
 
     //Date Created
@@ -203,4 +206,3 @@ function updateStatusButton(button, status) {
     button.className = status ? "authorized-button" : "unauthorized-button";
     button.textContent = status ? "Approved" : "Pending";
 }
-
