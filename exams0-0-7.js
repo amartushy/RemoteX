@@ -35,6 +35,47 @@ function extractFileNameFromURL(url) {
     return fileName;
 }
 
+// async function fetchAllExamsWithUserDetails() {
+//     clearExamsUI(); // Clear existing UI elements before fetching
+
+//     try {
+//         const examsSnapshot = await db.collection('exams').orderBy('date', 'desc').get();
+//         const examsDataPromises = examsSnapshot.docs.map(async (examDoc) => {
+//             const examData = examDoc.data();
+//             const userSnapshot = await db.collection('users').doc(examData.userID).get();
+
+//             if (userSnapshot.exists) {
+//                 const userData = userSnapshot.data();
+//                 return {
+//                     examID: examDoc.id, // Include the exam document's ID
+//                     userID : examData.userID,
+//                     userProfilePhoto: userData.profilePhoto,
+//                     userFullName: userData.fullName || "Unknown Name",
+//                     dateRecorded: examData.date.toDate(),
+//                     examType: examData.type,
+//                     audioFileName: examData.recording,
+//                     notes: examData.notes,
+//                 };
+//             }
+//         });
+
+//         const examsData = await Promise.all(examsDataPromises);
+//         examsData.filter(exam => exam !== undefined).forEach((exam) => {
+//             buildExamBlock(
+//                 exam.examID,
+//                 exam.userID,
+//                 exam.userFullName,
+//                 exam.userProfilePhoto,
+//                 formatDate(exam.dateRecorded),
+//                 exam.examType,
+//                 exam.audioFileName,
+//                 exam.notes
+//             );
+//         });
+//     } catch (error) {
+//         console.error("Error fetching exams with user details: ", error);
+//     }
+// }
 async function fetchAllExamsWithUserDetails() {
     clearExamsUI(); // Clear existing UI elements before fetching
 
@@ -42,21 +83,31 @@ async function fetchAllExamsWithUserDetails() {
         const examsSnapshot = await db.collection('exams').orderBy('date', 'desc').get();
         const examsDataPromises = examsSnapshot.docs.map(async (examDoc) => {
             const examData = examDoc.data();
-            const userSnapshot = await db.collection('users').doc(examData.userID).get();
+            let userDetails = {};
 
+            const userSnapshot = await db.collection('users').doc(examData.userID).get();
             if (userSnapshot.exists) {
                 const userData = userSnapshot.data();
-                return {
-                    examID: examDoc.id, // Include the exam document's ID
-                    userID : examData.userID,
-                    userProfilePhoto: userData.profilePhoto,
-                    userFullName: userData.fullName || "Unknown Name",
-                    dateRecorded: examData.date.toDate(),
-                    examType: examData.type,
-                    audioFileName: examData.recording,
-                    notes: examData.notes,
-                };
+
+                // Check if memberID is present and different from userID, and access member data from the 'members' map
+                if (examData.memberID && examData.memberID !== examData.userID && userData.members && userData.members[examData.memberID]) {
+                    userDetails = userData.members[examData.memberID]; // Access the member details from the map
+                } else {
+                    // Use user data if memberID is not specified or the same as userID
+                    userDetails = userData;
+                }
             }
+
+            return {
+                examID: examDoc.id,
+                userID: examData.userID,
+                userProfilePhoto: userDetails.profilePhoto || defaultProfile,
+                userFullName: userDetails.fullName || "Unknown Name",
+                dateRecorded: examData.date.toDate(),
+                examType: examData.type,
+                audioFileName: examData.recording,
+                notes: examData.notes,
+            };
         });
 
         const examsData = await Promise.all(examsDataPromises);
@@ -297,7 +348,7 @@ document.getElementById('download-exams-csv').addEventListener('click', async ()
         const examsSnapshot = await db.collection('exams').get();
         let csvContent = "data:text/csv;charset=utf-8,";
         // Extending the header row with user information
-        csvContent += `"Record DateTime","Exam ID","User ID","Exam Type","Audio Link","Notes","Device Model","Height (Feet)","Height (Inches)","Weight","BMI","Gender","Age"\r\n`;
+        csvContent += `"Record DateTime","Exam ID","User ID","Member ID","Exam Type","Audio Link","Notes","Device Model","Height (Feet)","Height (Inches)","Weight","BMI","Gender","Age"\r\n`;
 
         // Fetch user data for each exam and format rows
         const rows = await Promise.all(examsSnapshot.docs.map(async (doc) => {
@@ -318,6 +369,7 @@ document.getElementById('download-exams-csv').addEventListener('click', async ()
                 dateTimeString,
                 doc.id,
                 data.userID,
+                data.memberID,
                 data.type,
                 data.recording,
                 `"${sanitizedNotes}"`,
