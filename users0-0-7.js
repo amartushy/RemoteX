@@ -172,9 +172,12 @@ function buildUserBlock(userID, userName, userPhoto, dateCreated, status, member
     Object.keys(members || {}).forEach(memberID => {
         const member = members[memberID];
         const memberElement = document.createElement('div');
-        memberElement.className = member.profilePhoto ? `patient-photo-${member.colorScheme}` : 'patient-photo';
-        memberElement.style.backgroundImage = member.profilePhoto ? `url(${member.profilePhoto})` : '';
-        memberElement.style.backgroundColor = member.profilePhoto ? '' : member.colorScheme; // Fallback to color if no photo
+
+        if (member.profilePhoto == "") {
+            createDOMElement('div',`patient-photo-${member.colorScheme}`,  getFirstInitial(userName), memberElement)
+        } else {
+            createDOMElement('img', 'patient-photo', member.profilePhoto, memberElement)
+        }
         memberElement.title = member.fullName; // Tooltip to show member's name on hover
 
         memberElement.addEventListener('click', (e) => {
@@ -199,4 +202,3 @@ function updateStatusButton(button, status) {
     button.className = status ? "authorized-button" : "unauthorized-button";
     button.textContent = status ? "Approved" : "Pending";
 }
-
