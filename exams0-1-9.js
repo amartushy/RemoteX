@@ -103,7 +103,7 @@ async function fetchUserDetails(userID, memberID, userBlock) {
             let displayData = userData;
 
             // Check if memberID is provided and exists within the user's members map
-            if (memberID !== userID) {
+            if (memberID !== userID && memberID) {
                 displayData = userData.members[memberID];
             }
 
