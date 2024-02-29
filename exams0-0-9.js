@@ -1,5 +1,3 @@
-
-
 var db = firebase.firestore();
 let playButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fplay-button.png?alt=media&token=5d75ba33-098b-4445-bc95-e57caf1d920d"
 let stopButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fstop.png?alt=media&token=3c34261c-5ede-44a6-a17f-522f9adc0a41"
@@ -342,7 +340,6 @@ function createDOMElement(type, className, value, parent) {
 
 
 
-
 document.getElementById('download-exams-csv').addEventListener('click', async () => {
     const db = firebase.firestore();
     try {
@@ -358,29 +355,30 @@ document.getElementById('download-exams-csv').addEventListener('click', async ()
             const userDoc = await db.collection('users').doc(data.userID).get();
             const userData = userDoc.data();
 
+            let memberDetails = userData; // Default to userData if memberID is not specified or the same as userID
+            if (data.memberID !== date.userID) {
+                // If memberID is different and exists in userData.members, use member details
+                memberDetails = userData.members[data.memberID];
+            }
+
             const date = data.date.toDate();
             const dateTimeString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-            const notes = data.notes ? `"${data.notes.replace(/"/g, '""')}"` : "";
-
-            // Include user data in the row
-
-            // Updated approach for handling the notes field
             const sanitizedNotes = data.notes ? data.notes.replace(/"/g, '""').replace(/\r?\n|\r/g, " ") : "";
             const rowData = [
                 dateTimeString,
                 doc.id,
                 data.userID,
-                data.memberID,
+                data.memberID || "",
                 data.type,
                 data.recording,
                 `"${sanitizedNotes}"`,
-                userData.deviceModel || "",
-                userData.heightFeet || "",
-                userData.heightInches || "",
-                userData.weight || "",
-                userData.BMI || "",
-                userData.gender || "",
-                userData.age || ""
+                memberDetails.deviceModel || "",
+                memberDetails.heightFeet || "",
+                memberDetails.heightInches || "",
+                memberDetails.weight || "",
+                memberDetails.BMI || "",
+                memberDetails.gender || "",
+                memberDetails.age || ""
             ].join('","');
 
             return `"${rowData}"\r\n`;
