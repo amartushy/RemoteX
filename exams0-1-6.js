@@ -117,7 +117,8 @@ async function fetchUserDetails(userID, memberID, userBlock) {
                 userData.deviceModel || "Device model not specified",
                 `${displayData.heightFeet}'${displayData.heightInches}"` || "Height not specified",
                 displayData.weight || "Weight not specified",
-                displayData.BMI || "BMI not specified"
+                displayData.BMI || "BMI not specified",
+                displayData.colorScheme || "blue"
             );
         }
 
@@ -135,7 +136,7 @@ async function fetchUserDetails(userID, memberID, userBlock) {
 
 
 
-function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email, age, deviceModel, height, weight, BMI) {
+function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email, age, deviceModel, height, weight, BMI, colorScheme) {
 
     while ( patientDetailsContainer.firstChild ) {
         patientDetailsContainer.removeChild(patientDetailsContainer.firstChild)
@@ -143,7 +144,7 @@ function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email
     patientDetailsContainer.style.display = "flex"
 
     if (userPhoto == "") {
-        createDOMElement('img', 'patient-details-photo', defaultProfile, patientDetailsContainer)
+        createDOMElement('img', `patient-details-photo-${colorScheme}`,  getFirstInitial(userName), patientDetailsContainer)
     } else {
         createDOMElement('img', 'patient-details-photo', userPhoto, patientDetailsContainer)
     }
