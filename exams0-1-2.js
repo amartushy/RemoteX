@@ -1,5 +1,3 @@
-
-
 var db = firebase.firestore();
 let playButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fplay-button.png?alt=media&token=5d75ba33-098b-4445-bc95-e57caf1d920d"
 let stopButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fstop.png?alt=media&token=3c34261c-5ede-44a6-a17f-522f9adc0a41"
@@ -35,47 +33,6 @@ function extractFileNameFromURL(url) {
     return fileName;
 }
 
-// async function fetchAllExamsWithUserDetails() {
-//     clearExamsUI(); // Clear existing UI elements before fetching
-
-//     try {
-//         const examsSnapshot = await db.collection('exams').orderBy('date', 'desc').get();
-//         const examsDataPromises = examsSnapshot.docs.map(async (examDoc) => {
-//             const examData = examDoc.data();
-//             const userSnapshot = await db.collection('users').doc(examData.userID).get();
-
-//             if (userSnapshot.exists) {
-//                 const userData = userSnapshot.data();
-//                 return {
-//                     examID: examDoc.id, // Include the exam document's ID
-//                     userID : examData.userID,
-//                     userProfilePhoto: userData.profilePhoto,
-//                     userFullName: userData.fullName || "Unknown Name",
-//                     dateRecorded: examData.date.toDate(),
-//                     examType: examData.type,
-//                     audioFileName: examData.recording,
-//                     notes: examData.notes,
-//                 };
-//             }
-//         });
-
-//         const examsData = await Promise.all(examsDataPromises);
-//         examsData.filter(exam => exam !== undefined).forEach((exam) => {
-//             buildExamBlock(
-//                 exam.examID,
-//                 exam.userID,
-//                 exam.userFullName,
-//                 exam.userProfilePhoto,
-//                 formatDate(exam.dateRecorded),
-//                 exam.examType,
-//                 exam.audioFileName,
-//                 exam.notes
-//             );
-//         });
-//     } catch (error) {
-//         console.error("Error fetching exams with user details: ", error);
-//     }
-// }
 async function fetchAllExamsWithUserDetails() {
     clearExamsUI(); // Clear existing UI elements before fetching
 
@@ -102,6 +59,7 @@ async function fetchAllExamsWithUserDetails() {
             return {
                 examID: examDoc.id,
                 userID: examData.userID,
+                memberID : examData.memberID,
                 userProfilePhoto: userDetails.profilePhoto || defaultProfile,
                 userFullName: userDetails.fullName || "Unknown Name",
                 dateRecorded: examData.date.toDate(),
@@ -116,6 +74,7 @@ async function fetchAllExamsWithUserDetails() {
             buildExamBlock(
                 exam.examID,
                 exam.userID,
+                exam.memberID,
                 exam.userFullName,
                 exam.userProfilePhoto,
                 formatDate(exam.dateRecorded),
@@ -134,35 +93,38 @@ function clearExamsUI() {
     examsContainer.innerHTML = ''; // Clear the container
 }
 
-async function fetchUserDetails(userID, userBlock) {
+async function fetchUserDetails(userID, memberID, userBlock) {
     try {
         const userSnapshot = await db.collection('users').doc(userID).get();
         if (userSnapshot.exists) {
             const userData = userSnapshot.data();
+            let displayData = userData;
+
+            // Check if memberID is provided and exists within the user's members map
+            if (memberID !== userID) {
+                displayData = userData.members[memberID];
+            }
+
             buildPatientDetailsContainer(
                 userID,
-                userData.fullName || "Unknown Name",
-                userData.profilePhoto,
-                userData.gender || "Not specified",
-                userData.email || "No email provided",
-                userData.age || "Age not specified",
-                userData.deviceModel || "Device model not specified",
-                `${userData.heightFeet}'${userData.heightInches}"`,
-                userData.weight,
-                userData.BMI
-
+                displayData.fullName || "Unknown Name",
+                displayData.profilePhoto || defaultProfile,
+                displayData.gender || "Not specified",
+                userData.email || "No email provided", // Assuming email is not part of member's data
+                displayData.age || "Age not specified",
+                displayData.deviceModel || "Device model not specified",
+                `${displayData.heightFeet}'${displayData.heightInches}"` || "Height not specified",
+                displayData.weight || "Weight not specified",
+                displayData.BMI || "BMI not specified"
             );
         }
 
-        // Check if there is a block currently selected and remove the selected class
+        // Update UI for currently selected block
         if (currentlySelectedBlock && currentlySelectedBlock !== userBlock) {
             currentlySelectedBlock.classList.remove('user-block-selected');
         }
-        
-        // Add the selected class to the clicked block and update the currently selected block
         userBlock.classList.add('user-block-selected');
         currentlySelectedBlock = userBlock;
-
 
     } catch (error) {
         console.error("Error fetching user details: ", error);
@@ -200,10 +162,10 @@ function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email
 
 
 
-function buildExamBlock(examID, userID, userName, userPhoto, examDate, examType, audioURL, notes) {
+function buildExamBlock(examID, userID, memberID, userName, userPhoto, examDate, examType, audioURL, notes) {
     var userBlock = document.createElement('div');
     userBlock.className = 'exam-block';
-    userBlock.addEventListener('click', () => fetchUserDetails(userID, userBlock));
+    userBlock.addEventListener('click', () => fetchUserDetails(userID, memberID, userBlock));
 
     //Photo and Name
     var patientNameBlock = document.createElement('div');
