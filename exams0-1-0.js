@@ -356,7 +356,7 @@ document.getElementById('download-exams-csv').addEventListener('click', async ()
             const userData = userDoc.data();
 
             let memberDetails = userData; // Default to userData if memberID is not specified or the same as userID
-            if (data.memberID !== date.userID) {
+            if (data.memberID !== data.userID) {
                 // If memberID is different and exists in userData.members, use member details
                 memberDetails = userData.members[data.memberID];
             }
