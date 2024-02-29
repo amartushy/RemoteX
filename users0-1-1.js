@@ -1,3 +1,5 @@
+
+
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         // User is signed in, now check if they have isAdmin permission
@@ -105,7 +107,8 @@ async function fetchAllUsersAndBuildBlocks() {
                 userProfilePhoto: userData.profilePhoto || "",
                 dateCreated: userData.dateCreated.toDate(), // Assuming 'createdAt' is a Timestamp
                 status: userData.isAuthorized,
-                members : userData.members
+                members : userData.members,
+                colorScheme : userData.colorScheme || "blue"
             });
         });
 
@@ -128,7 +131,9 @@ function updateStatusButton(button, status) {
     button.textContent = status ? "Approved" : "Pending";
 }
 
-function buildUserBlock(userID, userName, userPhoto, dateCreated, status, members) {
+
+
+function buildUserBlock(userID, userName, userPhoto, dateCreated, status, members, colorScheme) {
     let userBlock = document.createElement('div');
     userBlock.className = 'user-block';
     userBlock.addEventListener('click', () => fetchUserDetails(userID, null, userBlock));
