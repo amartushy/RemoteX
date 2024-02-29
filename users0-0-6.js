@@ -104,7 +104,8 @@ async function fetchAllUsersAndBuildBlocks() {
                 userName: userData.fullName || "Unknown Name",
                 userProfilePhoto: userData.profilePhoto || defaultProfile,
                 dateCreated: userData.dateCreated.toDate(), // Assuming 'createdAt' is a Timestamp
-                status: userData.isAuthorized 
+                status: userData.isAuthorized,
+                members : userData.members
             });
         });
 
@@ -113,63 +114,21 @@ async function fetchAllUsersAndBuildBlocks() {
 
         // Now build blocks for each user
         usersData.forEach((user) => {
-            buildUserBlock(user.userID, user.userName, user.userProfilePhoto, user.dateCreated, user.status);
+            buildUserBlock(user.userID, user.userName, user.userProfilePhoto, user.dateCreated, user.status, user.members);
         });
     } catch (error) {
         console.error("Error fetching users: ", error);
     }
 }
 
-function buildUserBlock(userID, userName, userPhoto, dateCreated, status) {
-    let userBlock = document.createElement('div');
-    userBlock.className = 'user-block';
-    userBlock.addEventListener('click', () => fetchUserDetails(userID, userBlock));
 
-    //Photo and Name
-    var userNameBlock = document.createElement('div');
-    userNameBlock.className = 'user-name-block';
-    createDOMElement('img', 'patient-photo', userPhoto, userNameBlock);
-    createDOMElement('div', 'patient-text', userName, userNameBlock);
-
-    //Date Created
-    var userDateBlock = document.createElement('div');
-    userDateBlock.className = 'user-date-block';
-    createDOMElement('div', 'patient-text', formatDate(dateCreated), userDateBlock);
-
-    let userStatusBlock = document.createElement('div');
-    userStatusBlock.className = 'user-status-block';
-    let statusButton = document.createElement('button');
-    updateStatusButton(statusButton, status);
-    userStatusBlock.appendChild(statusButton);
-
-    // Event listener for status button to toggle status
-    statusButton.addEventListener('click', async () => {
-        const newStatus = !status; // Toggle the status
-        try {
-            await db.collection('users').doc(userID).update({isAuthorized: newStatus});
-            status = newStatus; // Update the local status variable to reflect the change
-            updateStatusButton(statusButton, status); // Update button appearance based on new status
-            console.log(`User ${userID} status updated to ${status}`);
-        } catch (error) {
-            console.error("Error updating user status: ", error);
-        }
-    });
-
-    // Append child elements to the user block
-    userBlock.appendChild(userNameBlock);
-    userBlock.appendChild(userDateBlock);
-    userBlock.appendChild(userStatusBlock);
-
-    // Append the user block to the container
-    document.getElementById('users-container').appendChild(userBlock);
-}
 
 function updateStatusButton(button, status) {
     button.className = status ? "authorized-button" : "unauthorized-button";
     button.textContent = status ? "Approved" : "Pending";
 }
 
-function buildUserBlock(userID, userName, userPhoto, dateCreated, status) {
+function buildUserBlock(userID, userName, userPhoto, dateCreated, status, members) {
     let userBlock = document.createElement('div');
     userBlock.className = 'user-block';
     userBlock.addEventListener('click', () => fetchUserDetails(userID, userBlock));
@@ -231,7 +190,7 @@ function buildUserBlock(userID, userName, userPhoto, dateCreated, status) {
     userBlock.appendChild(userDateBlock);
     userBlock.appendChild(userStatusBlock);
     userBlock.appendChild(userMembersBlock);
-    
+
     // Append the user block to the container
     document.getElementById('users-container').appendChild(userBlock);
 }
@@ -240,9 +199,4 @@ function updateStatusButton(button, status) {
     button.className = status ? "authorized-button" : "unauthorized-button";
     button.textContent = status ? "Approved" : "Pending";
 }
-
-
-// Call the function to fetch users and build the UI
-fetchAllUsersAndBuildBlocks();
-
 
