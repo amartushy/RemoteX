@@ -102,7 +102,7 @@ async function fetchAllUsersAndBuildBlocks() {
             usersData.push({
                 userID: userDoc.id,
                 userName: userData.fullName || "Unknown Name",
-                userProfilePhoto: userData.profilePhoto || defaultProfile,
+                userProfilePhoto: userData.profilePhoto || "",
                 dateCreated: userData.dateCreated.toDate(), // Assuming 'createdAt' is a Timestamp
                 status: userData.isAuthorized,
                 members : userData.members
