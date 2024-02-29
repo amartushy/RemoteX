@@ -144,7 +144,7 @@ function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email
     patientDetailsContainer.style.display = "flex"
 
     if (userPhoto == "") {
-        createDOMElement('img', `patient-details-photo-${colorScheme}`,  getFirstInitial(userName), patientDetailsContainer)
+        createDOMElement('div', `patient-details-photo-${colorScheme}`,  getFirstInitial(userName), patientDetailsContainer)
     } else {
         createDOMElement('img', 'patient-details-photo', userPhoto, patientDetailsContainer)
     }
