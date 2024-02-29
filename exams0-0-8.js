@@ -90,8 +90,9 @@ async function fetchAllExamsWithUserDetails() {
                 const userData = userSnapshot.data();
 
                 // Check if memberID is present and different from userID, and access member data from the 'members' map
-                if (examData.memberID && examData.memberID !== examData.userID && userData.members && userData.members[examData.memberID]) {
+                if ( examData.memberID !== examData.userID ) {
                     userDetails = userData.members[examData.memberID]; // Access the member details from the map
+                    console.log(userDetails)
                 } else {
                     // Use user data if memberID is not specified or the same as userID
                     userDetails = userData;
