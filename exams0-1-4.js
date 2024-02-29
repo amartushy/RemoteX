@@ -1,3 +1,5 @@
+
+
 var db = firebase.firestore();
 let playButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fplay-button.png?alt=media&token=5d75ba33-098b-4445-bc95-e57caf1d920d"
 let stopButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fstop.png?alt=media&token=3c34261c-5ede-44a6-a17f-522f9adc0a41"
@@ -66,6 +68,7 @@ async function fetchAllExamsWithUserDetails() {
                 examType: examData.type,
                 audioFileName: examData.recording,
                 notes: examData.notes,
+                colorScheme : userDetails.colorScheme || "blue"
             };
         });
 
@@ -80,7 +83,8 @@ async function fetchAllExamsWithUserDetails() {
                 formatDate(exam.dateRecorded),
                 exam.examType,
                 exam.audioFileName,
-                exam.notes
+                exam.notes,
+                exam.colorScheme
             );
         });
     } catch (error) {
@@ -162,7 +166,7 @@ function buildPatientDetailsContainer(userID, userName, userPhoto, gender, email
 
 
 
-function buildExamBlock(examID, userID, memberID, userName, userPhoto, examDate, examType, audioURL, notes) {
+function buildExamBlock(examID, userID, memberID, userName, userPhoto, examDate, examType, audioURL, notes, colorScheme) {
     var userBlock = document.createElement('div');
     userBlock.className = 'exam-block';
     userBlock.addEventListener('click', () => fetchUserDetails(userID, memberID, userBlock));
@@ -173,7 +177,7 @@ function buildExamBlock(examID, userID, memberID, userName, userPhoto, examDate,
     if (userPhoto == "") {
         createDOMElement('img', 'patient-photo', defaultProfile, patientNameBlock)
     } else {
-        createDOMElement('img', 'patient-photo', userPhoto, patientNameBlock)
+        createDOMElement('div', `patient-photo-${colorScheme}`, getFirstInitial(userName), patientNameBlock)
     }
     createDOMElement('div', 'patient-text', userName, patientNameBlock)
 
@@ -365,3 +369,19 @@ document.getElementById('download-exams-csv').addEventListener('click', async ()
         console.error("Error fetching exams data: ", error);
     }
 });
+
+
+
+
+
+
+
+//Helpers
+function getFirstInitial(userName) {
+    // Check if userName is not empty or undefined
+    if (userName && userName.length > 0) {
+        return userName.charAt(0).toUpperCase(); // Return the first character, capitalized
+    } else {
+        return ""; // Return an empty string if userName is empty or undefined
+    }
+}
