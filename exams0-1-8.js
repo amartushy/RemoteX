@@ -60,7 +60,7 @@ async function fetchAllExamsWithUserDetails() {
                 examID: examDoc.id,
                 userID: examData.userID,
                 memberID : examData.memberID,
-                userProfilePhoto: userDetails.profilePhoto || defaultProfile,
+                userProfilePhoto: userDetails.profilePhoto || "",
                 userFullName: userDetails.fullName || "Unknown Name",
                 dateRecorded: examData.date.toDate(),
                 examType: examData.type,
@@ -110,7 +110,7 @@ async function fetchUserDetails(userID, memberID, userBlock) {
             buildPatientDetailsContainer(
                 userID,
                 displayData.fullName || "Unknown Name",
-                displayData.profilePhoto || defaultProfile,
+                displayData.profilePhoto || "",
                 displayData.gender || "Not specified",
                 userData.email || "No email provided", // Assuming email is not part of member's data
                 displayData.age || "Age not specified",
