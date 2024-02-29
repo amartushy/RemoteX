@@ -112,7 +112,7 @@ async function fetchUserDetails(userID, memberID, userBlock) {
                 displayData.gender || "Not specified",
                 userData.email || "No email provided", // Assuming email is not part of member's data
                 displayData.age || "Age not specified",
-                displayData.deviceModel || "Device model not specified",
+                userData.deviceModel || "Device model not specified",
                 `${displayData.heightFeet}'${displayData.heightInches}"` || "Height not specified",
                 displayData.weight || "Weight not specified",
                 displayData.BMI || "BMI not specified"
