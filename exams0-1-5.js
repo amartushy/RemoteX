@@ -1,5 +1,3 @@
-
-
 var db = firebase.firestore();
 let playButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fplay-button.png?alt=media&token=5d75ba33-098b-4445-bc95-e57caf1d920d"
 let stopButtonSrc = "https://firebasestorage.googleapis.com/v0/b/remotex-2a1f2.appspot.com/o/web-icons%2Fstop.png?alt=media&token=3c34261c-5ede-44a6-a17f-522f9adc0a41"
@@ -175,9 +173,9 @@ function buildExamBlock(examID, userID, memberID, userName, userPhoto, examDate,
     var patientNameBlock = document.createElement('div');
     patientNameBlock.className = 'patient-name-block';
     if (userPhoto == "") {
-        createDOMElement('img', 'patient-photo', defaultProfile, patientNameBlock)
-    } else {
         createDOMElement('div', `patient-photo-${colorScheme}`, getFirstInitial(userName), patientNameBlock)
+    } else {
+        createDOMElement('img', 'patient-photo', userPhoto, patientNameBlock)
     }
     createDOMElement('div', 'patient-text', userName, patientNameBlock)
 
