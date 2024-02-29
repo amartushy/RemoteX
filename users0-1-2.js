@@ -1,5 +1,4 @@
 
-
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         // User is signed in, now check if they have isAdmin permission
@@ -117,7 +116,7 @@ async function fetchAllUsersAndBuildBlocks() {
 
         // Now build blocks for each user
         usersData.forEach((user) => {
-            buildUserBlock(user.userID, user.userName, user.userProfilePhoto, user.dateCreated, user.status, user.members);
+            buildUserBlock(user.userID, user.userName, user.userProfilePhoto, user.dateCreated, user.status, user.members, user.colorScheme);
         });
     } catch (error) {
         console.error("Error fetching users: ", error);
