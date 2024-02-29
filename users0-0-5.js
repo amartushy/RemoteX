@@ -1,4 +1,3 @@
-
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
         // User is signed in, now check if they have isAdmin permission
@@ -205,11 +204,34 @@ function buildUserBlock(userID, userName, userPhoto, dateCreated, status) {
         }
     });
 
+
+    // User Members Block
+    let userMembersBlock = document.createElement('div');
+    userMembersBlock.className = 'user-members-block';
+
+    // Iterate through members and create a photo or colored circle for each
+    Object.keys(members || {}).forEach(memberID => {
+        const member = members[memberID];
+        const memberElement = document.createElement('div');
+        memberElement.className = member.profilePhoto ? `patient-photo-${member.colorScheme}` : 'patient-photo';
+        memberElement.style.backgroundImage = member.profilePhoto ? `url(${member.profilePhoto})` : '';
+        memberElement.style.backgroundColor = member.profilePhoto ? '' : member.colorScheme; // Fallback to color if no photo
+        memberElement.title = member.fullName; // Tooltip to show member's name on hover
+
+        memberElement.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering the userBlock's click event
+            fetchUserDetails(userID, memberID, userBlock); // Fetch and display this member's details
+        });
+
+        userMembersBlock.appendChild(memberElement);
+    });
+
     // Append child elements to the user block
     userBlock.appendChild(userNameBlock);
     userBlock.appendChild(userDateBlock);
     userBlock.appendChild(userStatusBlock);
-
+    userBlock.appendChild(userMembersBlock);
+    
     // Append the user block to the container
     document.getElementById('users-container').appendChild(userBlock);
 }
